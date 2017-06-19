@@ -13,8 +13,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 public class MainActivity extends Activity {
 
     private IRemoteService mRemoteService;
@@ -42,25 +40,48 @@ public class MainActivity extends Activity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             mRemoteService = IRemoteService.Stub.asInterface(service);
             try {
+                /**
+                 * 当前进程和服务进程的pid
+                 */
                 int pid = mRemoteService.getPid();
                 int currentPid = android.os.Process.myPid();
-                System.out.println("currentPid: " + currentPid + " remotePid: " + pid);
+                Log.e("threadPid", "currentPid: " + currentPid + " remotePid: " + pid);
+                /**
+                 * 发送基本类型和引用类型数据到服务端
+                 */
+                mRemoteService.registerReceiveListener(messageReceiver);
+                mRemoteService.sendText("test");
                 mRemoteService.basicTypes(1,2,true, 1.2f, 2.4, "aidl");
+                Person person = new Person("test", 1);
+                mRemoteService.sendMessage(person);
             } catch (RemoteException e) {
                 Log.e("error", e.toString());
             }
-            System.out.println("bind success! " + mRemoteService.toString());
+            Log.e("bind success! ", mRemoteService.toString());
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            System.out.println("disconnected " + mRemoteService.toString());
+            Log.e("disconnected! ", mRemoteService.toString());
+        }
+    };
+
+    private MessageReceiver messageReceiver = new MessageReceiver.Stub() {
+
+        @Override
+        public void onMessageReceived(Person person) throws RemoteException {
+            Log.e("onMessageReceived", person.toString());
         }
     };
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        try {
+            mRemoteService.unRegisterReceiveListener(messageReceiver);
+        } catch (RemoteException e) {
+            Log.e("RemoteException", e.toString());
+        }
         unbindService(serviceConnection);
     }
 
@@ -70,6 +91,9 @@ public class MainActivity extends Activity {
             if(!text.equals("")){
                 try {
                     int pid = Integer.valueOf(text);
+                    /**
+                     * 接收服务端的基本类型引用类型数据
+                     */
                     String name = mRemoteService.getName(pid);
                     Person person = mRemoteService.getPerson(pid);
                     if(person != null){

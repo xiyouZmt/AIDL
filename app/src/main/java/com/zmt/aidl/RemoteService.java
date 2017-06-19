@@ -23,6 +23,7 @@ public class RemoteService extends Service {
         personList.add(new Person("关羽", 19));
         personList.add(new Person("赵子龙", 20));
         personList.add(new Person("张飞", 21));
+//        return null;
         return mBinder;
     }
 
@@ -43,6 +44,16 @@ public class RemoteService extends Service {
         }
 
         @Override
+        public void registerReceiveListener(MessageReceiver messageReceiver) throws RemoteException {
+
+        }
+
+        @Override
+        public void unRegisterReceiveListener(MessageReceiver messageReceiver) throws RemoteException {
+
+        }
+
+        @Override
         public String getName(int id) throws RemoteException {
             return name[id];
         }
@@ -50,6 +61,16 @@ public class RemoteService extends Service {
         @Override
         public Person getPerson(int id) throws RemoteException {
             return personList.get(id);
+        }
+
+        @Override
+        public void sendMessage(Person person) throws RemoteException {
+
+        }
+
+        @Override
+        public void sendText(String text) throws RemoteException {
+
         }
     };
 }
